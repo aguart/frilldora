@@ -1,0 +1,2 @@
+# frilldora
+Enables cloaking
