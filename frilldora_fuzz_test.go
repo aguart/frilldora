@@ -20,6 +20,8 @@ func FuzzWork(f *testing.F) {
 		f.Add(tc.visible, tc.invisible)
 	}
 	f.Fuzz(func(t *testing.T, visible []byte, invisible []byte) {
+		t.Logf("%X\n", visible)
+		t.Logf("%X\n", invisible)
 		withHidden, err := Hide(visible, invisible)
 		require.NoError(t, err)
 		hidden, err := Reveal(withHidden)

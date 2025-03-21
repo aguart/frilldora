@@ -20,6 +20,9 @@ const (
 )
 
 func Hide(visible, invisible []byte, opts ...Option) ([]byte, error) {
+	if len(invisible) == 0 {
+		return []byte(Clean(string(visible))), nil
+	}
 	visible = []byte(Clean(string(visible)))
 	for _, opt := range opts {
 		var err error
