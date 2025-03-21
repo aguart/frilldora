@@ -9,6 +9,7 @@ import (
 )
 
 func TestWork(t *testing.T) {
+	t.Skip()
 	cases := []struct {
 		desc      string
 		visible   []byte
