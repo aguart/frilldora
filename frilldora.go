@@ -2,10 +2,7 @@ package gowhisper
 
 import (
 	"bytes"
-	"io"
 	"unicode/utf8"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -28,26 +25,46 @@ func Hide(visible, invisible []byte, opts ...Option) ([]byte, error) {
 			return nil, err
 		}
 	}
-	invReader := bytes.NewReader(invisible)
+
 	result := new(bytes.Buffer)
-	result.Grow(len(visible) + len(invisible))
-	for _, charVis := range string(visible) {
-		result.WriteRune(charVis)
-		bb, err := invReader.ReadByte()
-		if errors.Is(err, io.EOF) {
-			continue
-		}
-		if err != nil {
-			return nil, err
-		}
-		result.WriteRune(toVariationSelector(bb))
+	runesVisible := []rune(string(visible))
+	lenRunes, lenBytes := len(runesVisible), len(invisible)
+	result.Grow(len(visible) + len(invisible)*4) // multiple 4 because hidden byte convert to rune(4bytes)
+
+	longerLen, shorterLen := lenRunes, lenBytes
+	isRunesLonger := true
+	if lenBytes > lenRunes {
+		longerLen, shorterLen = lenBytes, lenRunes
+		isRunesLonger = false
 	}
-	for {
-		bb, err := invReader.ReadByte()
-		if errors.Is(err, io.EOF) {
-			break
+
+	step := float64(longerLen) / float64(shorterLen)
+	longerIdx, shorterIdx := 0, 0
+
+	for shorterIdx < shorterLen || longerIdx < longerLen {
+		nextLongerIdx := int(float64(shorterIdx+1) * step)
+		if nextLongerIdx > longerLen {
+			nextLongerIdx = longerLen
 		}
-		result.WriteRune(toVariationSelector(bb))
+
+		if isRunesLonger {
+			for ; longerIdx < nextLongerIdx; longerIdx++ {
+				result.WriteRune(runesVisible[longerIdx])
+			}
+		} else {
+			for ; longerIdx < nextLongerIdx; longerIdx++ {
+				result.WriteRune(toVariationSelector(invisible[longerIdx]))
+			}
+		}
+
+		if shorterIdx < shorterLen {
+			if isRunesLonger {
+				result.WriteRune(toVariationSelector(invisible[shorterIdx]))
+			} else {
+				result.WriteRune(runesVisible[shorterIdx])
+			}
+			shorterIdx++
+		}
 	}
 
 	return result.Bytes(), nil
