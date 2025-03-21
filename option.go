@@ -1,4 +1,4 @@
-package gowhisper
+package frilldora
 
 type (
 	EncryptFunc    func(plaintext, pass []byte) ([]byte, error)
