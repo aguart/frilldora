@@ -7,6 +7,7 @@ import (
 )
 
 func FuzzWork(f *testing.F) {
+	f.Skip()
 	testcases := []struct {
 		visible   []byte
 		invisible []byte

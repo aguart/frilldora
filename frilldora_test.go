@@ -29,7 +29,7 @@ func TestWork(t *testing.T) {
 		},
 		{
 			desc:      "ok empty invisible",
-			visible:   []byte("visible"),
+			visible:   []byte("visible 02"),
 			invisible: []byte(""),
 			encOpt:    func(in []byte) ([]byte, error) { return in, nil },
 			decOpt:    func(in []byte) ([]byte, error) { return in, nil },
