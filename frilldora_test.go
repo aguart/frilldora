@@ -1,4 +1,4 @@
-package gowhisper
+package frilldora
 
 import (
 	"testing"
@@ -22,6 +22,33 @@ func TestWork(t *testing.T) {
 			desc:      "ok",
 			visible:   []byte("visible"),
 			invisible: []byte("invisible"),
+			encOpt:    func(in []byte) ([]byte, error) { return in, nil },
+			decOpt:    func(in []byte) ([]byte, error) { return in, nil },
+			compOpt:   func(in []byte) ([]byte, error) { return in, nil },
+			decompOpt: func(in []byte) ([]byte, error) { return in, nil },
+		},
+		{
+			desc:      "ok empty invisible",
+			visible:   []byte("visible"),
+			invisible: []byte(""),
+			encOpt:    func(in []byte) ([]byte, error) { return in, nil },
+			decOpt:    func(in []byte) ([]byte, error) { return in, nil },
+			compOpt:   func(in []byte) ([]byte, error) { return in, nil },
+			decompOpt: func(in []byte) ([]byte, error) { return in, nil },
+		},
+		{
+			desc:      "ok empty visible",
+			visible:   []byte(""),
+			invisible: []byte("0"),
+			encOpt:    func(in []byte) ([]byte, error) { return in, nil },
+			decOpt:    func(in []byte) ([]byte, error) { return in, nil },
+			compOpt:   func(in []byte) ([]byte, error) { return in, nil },
+			decompOpt: func(in []byte) ([]byte, error) { return in, nil },
+		},
+		{
+			desc:      "ok from fuzz",
+			visible:   []byte{0xEF, 0xB8, 0x86},
+			invisible: []byte{0x30},
 			encOpt:    func(in []byte) ([]byte, error) { return in, nil },
 			decOpt:    func(in []byte) ([]byte, error) { return in, nil },
 			compOpt:   func(in []byte) ([]byte, error) { return in, nil },
