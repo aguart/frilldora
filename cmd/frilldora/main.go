@@ -2,20 +2,24 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/urfave/cli/v3"
 )
 
+type cliOptions struct {
+	pathToVisible string
+	pathToSecret  string
+	outputPath    string
+	inputPath     string
+	useCompress   bool
+	cryptoPass    string
+}
+
 func main() {
-	var (
-		pathToVisible string
-		pathToSecret  string
-		outputPath    string
-		inputPath     string
-	)
+	opts := cliOptions{}
+
 	cmd := &cli.Command{
 		Name:  "Frilldora",
 		Usage: "cloaking tool",
@@ -29,26 +33,38 @@ func main() {
 						Name:        "visible",
 						Aliases:     []string{"v"},
 						Usage:       "path to file with visible text",
-						Destination: &pathToVisible,
+						Destination: &opts.pathToVisible,
 					},
 					&cli.StringFlag{
 						Required:    true,
 						Name:        "secret",
 						Aliases:     []string{"s"},
 						Usage:       "path to file with secret text",
-						Destination: &pathToSecret,
+						Destination: &opts.pathToSecret,
 					},
 					&cli.StringFlag{
 						Required:    true,
 						Name:        "output",
 						Aliases:     []string{"o"},
 						Usage:       "path to output file",
-						Destination: &outputPath,
+						Destination: &opts.outputPath,
+					},
+					&cli.BoolFlag{
+						Name:        "compress",
+						Aliases:     []string{"c"},
+						Usage:       "is compress secret text",
+						Destination: &opts.useCompress,
+					},
+					&cli.StringFlag{
+						Required:    true,
+						Name:        "crypto-key",
+						Aliases:     []string{"ck"},
+						Usage:       "key used to encrypt secret text",
+						Destination: &opts.cryptoPass,
 					},
 				},
-				Action: func(ctx context.Context, cmd *cli.Command) error {
-					fmt.Println(pathToVisible, pathToSecret, outputPath)
-					return nil
+				Action: func(ctx context.Context, _ *cli.Command) error {
+					return cliHide(&opts)
 				},
 			},
 			{
@@ -60,19 +76,31 @@ func main() {
 						Name:        "input",
 						Aliases:     []string{"i"},
 						Usage:       "path to input file",
-						Destination: &inputPath,
+						Destination: &opts.inputPath,
 					},
 					&cli.StringFlag{
 						Required:    true,
 						Name:        "output",
 						Aliases:     []string{"o"},
 						Usage:       "path to output file",
-						Destination: &outputPath,
+						Destination: &opts.outputPath,
+					},
+					&cli.BoolFlag{
+						Name:        "decompress",
+						Aliases:     []string{"dc"},
+						Usage:       "is decompress secret text",
+						Destination: &opts.useCompress,
+					},
+					&cli.StringFlag{
+						Required:    true,
+						Name:        "crypto-key",
+						Aliases:     []string{"ck"},
+						Usage:       "key used to decrypt secret text",
+						Destination: &opts.cryptoPass,
 					},
 				},
-				Action: func(ctx context.Context, cmd *cli.Command) error {
-					fmt.Println(inputPath, outputPath)
-					return nil
+				Action: func(ctx context.Context, _ *cli.Command) error {
+					return cliReveal(&opts)
 				},
 			},
 		},
