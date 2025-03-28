@@ -11,12 +11,11 @@ permissions:
   id-token: write
   packages: write
 
-builds:
-  - main: ./cmd/frilldora/
-
 jobs:
   release:
     runs-on: ubuntu-latest
+    builds:
+      - main: ./cmd/frilldora/
     env:
       flags: ""
     steps:
