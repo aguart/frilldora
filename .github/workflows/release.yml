@@ -17,7 +17,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
         with:
-          args: |
-            darwin-amd64.zip
-            linux-amd64.zip
-            windows-amd64.zip
+          args: linux-amd64
