@@ -56,7 +56,6 @@ func main() {
 						Destination: &opts.useCompress,
 					},
 					&cli.StringFlag{
-						Required:    true,
 						Name:        "crypto-key",
 						Aliases:     []string{"ck"},
 						Usage:       "key used to encrypt secret text",
@@ -92,7 +91,6 @@ func main() {
 						Destination: &opts.useCompress,
 					},
 					&cli.StringFlag{
-						Required:    true,
 						Name:        "crypto-key",
 						Aliases:     []string{"ck"},
 						Usage:       "key used to decrypt secret text",
