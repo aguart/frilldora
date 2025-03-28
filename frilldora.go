@@ -20,6 +20,10 @@ const (
 )
 
 func Hide(visible, invisible []byte, opts ...Option) ([]byte, error) {
+	// corner case: if len invisible is 0 - return only visible
+	if len(invisible) == 0 {
+		return []byte(Clean(string(visible))), nil
+	}
 	visible = []byte(Clean(string(visible)))
 	for _, opt := range opts {
 		var err error
@@ -34,6 +38,14 @@ func Hide(visible, invisible []byte, opts ...Option) ([]byte, error) {
 	lenRunes, lenBytes := len(runesVisible), len(invisible)
 	result.Grow(len(visible) + len(invisible)*4) // multiple 4 because hidden byte convert to rune(4bytes)
 
+	// corner case: if len of visible text is 0 - write only invisible bytes and return
+	if lenRunes == 0 {
+		for _, b := range invisible {
+			result.WriteRune(toVariationSelector(b))
+		}
+		return result.Bytes(), nil
+	}
+
 	longerLen, shorterLen := lenRunes, lenBytes
 	isRunesLonger := true
 	if lenBytes > lenRunes {
@@ -41,14 +53,14 @@ func Hide(visible, invisible []byte, opts ...Option) ([]byte, error) {
 		isRunesLonger = false
 	}
 
-	step := float64(longerLen) / float64(shorterLen)
 	longerIdx, shorterIdx := 0, 0
+	stepNumerator := longerLen
+	stepDenominator := shorterLen
+	remainder := 0
 
 	for shorterIdx < shorterLen || longerIdx < longerLen {
-		nextLongerIdx := int(float64(shorterIdx+1) * step)
-		if nextLongerIdx > longerLen {
-			nextLongerIdx = longerLen
-		}
+		nextLongerIdx := longerIdx + (stepNumerator+remainder)/stepDenominator
+		remainder = (stepNumerator + remainder) % stepDenominator
 
 		if isRunesLonger {
 			for ; longerIdx < nextLongerIdx; longerIdx++ {
