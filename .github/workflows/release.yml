@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    name: Build for multiple platforms
+    name: Build Go Binaries
     runs-on: ubuntu-latest
 
     strategy:
@@ -19,7 +19,7 @@ jobs:
         goarch: [amd64, arm64]
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Go
@@ -27,41 +27,56 @@ jobs:
         with:
           go-version: '1.24'
 
-      - name: Set env vars
-        run: echo "RELEASE_TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
-
       - name: Build binary
         run: |
           mkdir -p dist
-          FILENAME=frilldora-${{ matrix.goos }}-${{ matrix.goarch }}
           EXT=""
           if [ "${{ matrix.goos }}" = "windows" ]; then EXT=".exe"; fi
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/$FILENAME$EXT cmd/frilldora/*.go
+          FILENAME=frilldora-${{ matrix.goos }}-${{ matrix.goarch }}$EXT
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/$FILENAME cmd/frilldora/*.go
 
-      - name: Upload binaries
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: frilldora-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/**/*
+          name: binaries-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
 
   release:
-    name: Create Release
+    name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download binaries
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: dist
+          path: artifacts
+
+      - name: Flatten all artifacts into dist/
+        run: |
+          mkdir -p dist
+          find artifacts -type f -exec cp {} dist/ \;
+          echo "Dist contents:"
+          ls -lh dist
+
+      - name: Extract changelog for tag
+        id: changelog
+        run: |
+          TAG=${GITHUB_REF_NAME}
+          TEXT=$(awk "/^## ${TAG}/{flag=1; next} /^## /{flag=0} flag" CHANGELOG.md | sed '/^\s*$/d')
+          echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
+          echo "$TEXT" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
+          body: ${{ env.RELEASE_BODY }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
